@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { useState, useRef, useCallback, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/dashboard";
 import Session from "./pages/Session";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -27,13 +27,16 @@ function App() {
   const [isActive, setIsActive] = useState(false);
   const startTimeRef = useRef(null);
 
+  const [focusLimit, setFocusLimit] = useState(20);
+  const [isBreak, setIsBreak] = useState(false);
+  const [breakSeconds, setBreakSeconds] = useState(10);
+  const [distractions, setDistractions] = useState(0);
+
+  const BREAK_LIMIT = 10;
+
   const [siteCountsAsDistraction, setSiteCountsAsDistractionState] = useState(
     loadSiteSettings
   );
-
-  useEffect(() => {
-    saveAnalytics(analytics);
-  }, [analytics]);
 
   const setTotalFocusTime = useCallback((updater) => {
     setAnalyticsState((prev) => ({
@@ -48,6 +51,28 @@ function App() {
       totalDistractions: typeof updater === "function" ? updater(prev.totalDistractions) : updater,
     }));
   }, []);
+
+  useEffect(() => {
+    if (!isBreak || breakSeconds <= 0) return;
+    const interval = setInterval(() => setBreakSeconds((prev) => prev - 1), 1000);
+    return () => clearInterval(interval);
+  }, [isBreak, breakSeconds]);
+
+  useEffect(() => {
+    if (breakSeconds === 0 && isBreak) {
+      setTotalFocusTime((prev) => prev + seconds);
+      setFocusLimit(distractions >= 3 ? 15 : distractions === 0 ? 25 : 20);
+      setSeconds(0);
+      setIsBreak(false);
+      setBreakSeconds(BREAK_LIMIT);
+      setIsActive(false);
+      setDistractions(0);
+    }
+  }, [breakSeconds, isBreak, seconds, distractions, setTotalFocusTime, setFocusLimit, setSeconds, setIsBreak, setBreakSeconds, setIsActive, setDistractions]);
+
+  useEffect(() => {
+    saveAnalytics(analytics);
+  }, [analytics]);
 
   const setSiteCountsAsDistraction = useCallback((next) => {
     setSiteCountsAsDistractionState((prev) => {
@@ -84,6 +109,14 @@ function App() {
                 setTotalFocusTime={setTotalFocusTime}
                 setTotalDistractions={setTotalDistractions}
                 siteCountsAsDistraction={siteCountsAsDistraction}
+                focusLimit={focusLimit}
+                setFocusLimit={setFocusLimit}
+                isBreak={isBreak}
+                setIsBreak={setIsBreak}
+                breakSeconds={breakSeconds}
+                setBreakSeconds={setBreakSeconds}
+                distractions={distractions}
+                setDistractions={setDistractions}
               />
             }
           />
