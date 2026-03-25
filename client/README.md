@@ -40,6 +40,4 @@ Open [http://localhost:3000](http://localhost:3000). Build for production with `
 - `src/hooks/` — `useDocumentTitle.js` (optional).
 - `src/index.css` — Design tokens, card/button/ring styles, focus-visible and responsive rules.
 
-## License
 
-MIT.
