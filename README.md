@@ -1,6 +1,46 @@
 # StandByte — Full-Stack Focus Timer (MongoDB)
 
 A Pomodoro-style focus timer with proctored sessions, streak tracking, and productivity analytics. Full-stack React + Node.js + MongoDB application.
+## Screenshots
+
+### Dashboard & Analytics
+<img width="2940" height="1666" alt="image" src="https://github.com/user-attachments/assets/9cc9fc6d-32d2-4841-a44b-36c6651e129a" />
+<img width="2940" height="732" alt="image" src="https://github.com/user-attachments/assets/13b741b2-e561-479b-bd91-0e168105d33b" />
+
+### Session — Pomodoro Timer
+<img width="2940" height="1912" alt="image" src="https://github.com/user-attachments/assets/b8d8ffe2-f5c4-4d40-ae47-97648690029c" />
+
+### Proctored Mode — Escape Warning
+<img width="2940" height="1662" alt="image" src="https://github.com/user-attachments/assets/30d1ff22-3e8c-44ad-b07c-87125d9ca729" />
+
+### Session Exit Prompt
+<img width="2940" height="1912" alt="image" src="https://github.com/user-attachments/assets/cb75bba5-27f4-450f-9734-92a558f37b83" />
+<img width="2940" height="1912" alt="image" src="https://github.com/user-attachments/assets/efb705dc-ff20-410c-9b67-6418b2997b93" />
+
+### Session History
+<img width="2940" height="732" alt="image" src="https://github.com/user-attachments/assets/d3138a7d-0868-49b5-b84e-51a4c713cf2c" />
+
+### Settings — Proctored & Pomodoro Mode
+<img width="2940" height="1664" alt="image" src="https://github.com/user-attachments/assets/5687bdb3-0700-4872-b161-1d2ae8387a25" />
+<img width="2216" height="1214" alt="image" src="https://github.com/user-attachments/assets/5c6dbba8-7a97-486b-b1d3-a4f050f7daa2" />
+<img width="2940" height="532" alt="image" src="https://github.com/user-attachments/assets/b4ddf310-a49b-477f-b175-1cd064e53aee" />
+
+---
+
+## Features
+
+- **Focus sessions** — Single-block or multi-block Pomodoro timer with configurable durations (15, 25, 30, 45, 60 min)
+- **Pomodoro mode** — N focus blocks separated by breaks; entire loop must complete to count as a session
+- **Proctored mode** — Fullscreen lockdown with escape detection, tab-switch monitoring, and streak-break consequences
+- **Distraction analytics** — Tracks every tab switch, quantifies time lost, and calculates a productivity score
+- **Streak system** — Consecutive completed sessions tracked with current and best streak
+- **Session history** — Per-session log with duration, distraction count, mode badges, and timestamps
+- **Adaptive focus** — Fewer distractions reward longer next session targets; more distractions shorten them
+- **MongoDB persistence** — All analytics and session history stored in MongoDB, persists across devices and refreshes
+- **Keyboard shortcut** — Press `Space` to start/pause the timer
+- **Responsive UI** — Adapts to smaller screens with a circular progress ring and clean card layout
+
+---
 
 ## Architecture
 
