@@ -1,33 +1,28 @@
-/* Default: all these count as distraction. User can set to false for "don't count" (e.g. work use). */
+// Config constants — site list and duration options.
+// Persistence moved to the backend (see lib/api.js and server/src/routes/settings.js).
+
 export const DISTRACTION_SITES = [
-  { id: "youtube", name: "YouTube" },
-  { id: "netflix", name: "Netflix" },
-  { id: "spotify", name: "Spotify" },
-  { id: "instagram", name: "Instagram" },
-  { id: "twitter", name: "Twitter / X" },
-  { id: "facebook", name: "Facebook" },
-  { id: "reddit", name: "Reddit" },
-  { id: "tiktok", name: "TikTok" },
+  { id: "youtube", name: "YouTube", icon: "▶" },
+  { id: "netflix", name: "Netflix", icon: "🎬" },
+  { id: "spotify", name: "Spotify", icon: "🎵" },
+  { id: "instagram", name: "Instagram", icon: "📷" },
+  { id: "twitter", name: "Twitter / X", icon: "𝕏" },
+  { id: "facebook", name: "Facebook", icon: "f" },
+  { id: "reddit", name: "Reddit", icon: "⬆" },
+  { id: "tiktok", name: "TikTok", icon: "♪" },
 ];
 
-export function getDefaultSiteCountsAsDistraction() {
-  return DISTRACTION_SITES.reduce((acc, { id }) => ({ ...acc, [id]: true }), {});
-}
+export const FOCUS_OPTIONS = [
+  { label: "15 min", value: 900 },
+  { label: "25 min", value: 1500 },
+  { label: "30 min", value: 1800 },
+  { label: "45 min", value: 2700 },
+  { label: "60 min", value: 3600 },
+];
 
-export function loadSiteSettings() {
-  try {
-    const raw = localStorage.getItem("standbyte_site_settings");
-    if (!raw) return getDefaultSiteCountsAsDistraction();
-    const parsed = JSON.parse(raw);
-    const defaults = getDefaultSiteCountsAsDistraction();
-    return { ...defaults, ...parsed };
-  } catch {
-    return getDefaultSiteCountsAsDistraction();
-  }
-}
-
-export function saveSiteSettings(settings) {
-  try {
-    localStorage.setItem("standbyte_site_settings", JSON.stringify(settings));
-  } catch (_) {}
-}
+export const BREAK_OPTIONS = [
+  { label: "3 min", value: 180 },
+  { label: "5 min", value: 300 },
+  { label: "10 min", value: 600 },
+  { label: "15 min", value: 900 },
+];

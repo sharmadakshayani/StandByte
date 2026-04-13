@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 function NotFound() {
+  useDocumentTitle("Page not found");
+
   return (
-    <div className="py-5 text-center">
-      <h1 className="display-4 fw-bold text-muted mb-2">404</h1>
-      <p className="lead text-muted mb-4">Page not found.</p>
-      <Link to="/" className="btn btn-primary rounded-pill px-4 btn-smooth">
+    <div className="sb-page-enter" style={{ textAlign: "center", padding: "60px 0" }}>
+      <div style={{ fontSize: 64, fontWeight: 800, color: "#cbd5e1", lineHeight: 1 }}>404</div>
+      <p style={{ color: "#64748b", fontSize: 18, margin: "12px 0 24px" }}>Page not found.</p>
+      <Link to="/" className="sb-btn sb-btn-primary">
         Back to Dashboard
       </Link>
     </div>

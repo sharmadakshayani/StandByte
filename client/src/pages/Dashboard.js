@@ -1,96 +1,269 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
+import { fmtTimeLong } from "../lib/formatTime";
+import { Icons } from "../lib/Icons";
+import StatsCard from "../components/StatsCard";
+import MiniBarChart from "../components/MiniBarChart";
 
-function Dashboard({ totalFocusTime = 0, totalDistractions = 0 }) {
-  const productivityScore =
-    totalFocusTime === 0
-      ? 0
-      : Math.max(
-          0,
-          Math.round(
-            (totalFocusTime /
-              (totalFocusTime + totalDistractions * 5)) *
-              100
-          )
-        );
+function Dashboard({ analytics, sessions = [] }) {
+  useDocumentTitle("Dashboard");
 
-  const formatTime = (time) => {
-    const t = Number(time) || 0;
-    const mins = Math.floor(t / 60);
-    const secs = Math.floor(t % 60);
-    return `${mins}m ${secs}s`;
+  const {
+    totalFocusTime = 0,
+    totalDistractions = 0,
+    totalTimeAway = 0,
+    productiveFocusTime = 0,
+    currentStreak = 0,
+    bestStreak = 0,
+    completedSessions = 0,
+  } = analytics || {};
+
+  // ── Helpers ──
+
+  // Format a millisecond duration as "2m 40s" / "45s" / "1h 12m"
+  const fmtDurationMs = (ms) => {
+    const total = Math.round(ms / 1000);
+    if (total < 60) return `${total}s`;
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m ${s}s`;
   };
 
-  const isEmpty = totalFocusTime === 0 && totalDistractions === 0;
+  const score =
+    totalFocusTime === 0
+      ? 0
+      : Math.max(0, Math.round((totalFocusTime / (totalFocusTime + totalDistractions * 5)) * 100));
+
+  const isEmpty = totalFocusTime === 0 && totalDistractions === 0 && sessions.length === 0;
+
+  const chartData = useMemo(() => {
+    const last7 = sessions.slice(-7);
+    return last7.map((s, i) => ({
+      label: `#${sessions.length - (last7.length - 1 - i)}`,
+      value: s.focusTime,
+    }));
+  }, [sessions]);
+
+  const distractChart = useMemo(() => {
+    const last7 = sessions.slice(-7);
+    return last7.map((s, i) => ({
+      label: `#${sessions.length - (last7.length - 1 - i)}`,
+      value: s.distractions,
+    }));
+  }, [sessions]);
+
+  const bestSession = sessions.length > 0 ? Math.max(...sessions.map((s) => s.focusTime)) : 0;
+
+  // "useful work" hours = productive focus time, formatted in hours
+  const productiveHours = (productiveFocusTime / 3600).toFixed(1);
 
   return (
-    <div className="py-4">
-      <div className="text-center mb-5 pb-2">
-        <h1 className="display-5 fw-bold mb-2 hero-gradient">StandByte Analytics</h1>
-        <p className="lead text-muted mb-0">Track your focus time and productivity at a glance.</p>
-        <p className="text-muted small mt-1">Every session counts — stay consistent.</p>
+    <div className="sb-page-enter">
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h1 className="sb-hero-title">StandByte Analytics</h1>
+        <p style={{ color: "#64748b", fontSize: 16, margin: "4px 0 0" }}>
+          Track your focus time and productivity at a glance.
+        </p>
+        <p style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>
+          Every session counts — stay consistent.
+        </p>
       </div>
 
       {isEmpty ? (
-        <div className="text-center py-5">
-          <div className="card border-0 shadow-sm rounded-3 p-5 mx-auto" style={{ maxWidth: "400px" }}>
-            <p className="text-muted mb-3">No sessions yet. Start your first focus session to see your stats here.</p>
-            <Link to="/session" className="btn btn-primary rounded-pill px-4 btn-smooth">
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <div className="sb-empty-card">
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+            <p style={{ color: "#64748b", marginBottom: 16 }}>
+              No sessions yet. Start your first focus session to see your stats here.
+            </p>
+            <Link to="/session" className="sb-btn sb-btn-primary">
               Start your first session
             </Link>
           </div>
         </div>
       ) : (
         <>
-          <p className="text-center text-muted small mb-3">Cumulative from all sessions</p>
-          <div className="row g-4 justify-content-center">
-            <div className="col-12 col-md-6 col-lg-4">
-              <div className="card border-0 shadow-sm rounded-3 h-100 p-4 card-hover stat-card-primary">
-                <div className="d-flex align-items-center gap-3">
-                  <div className="rounded-3 bg-primary bg-opacity-10 p-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16" className="text-primary">
-                      <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
-                      <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-grow-1">
-                    <h6 className="text-uppercase text-muted fw-semibold mb-1 small">Total Focus Time</h6>
-                    <p className="fs-3 fw-bold mb-0 text-primary">{formatTime(totalFocusTime)}</p>
-                  </div>
+          {/* Hero stats: Streak + Productive hours */}
+          <div className="sb-hero-stats">
+            <div className="sb-hero-stat sb-hero-streak">
+              <div className="sb-hero-stat-icon">🔥</div>
+              <div>
+                <div className="sb-hero-stat-val">{currentStreak}</div>
+                <div className="sb-hero-stat-label">
+                  Current Streak {currentStreak === 1 ? "session" : "sessions"}
                 </div>
+                {bestStreak > 0 && (
+                  <div className="sb-hero-stat-sub">Best: {bestStreak}</div>
+                )}
               </div>
             </div>
-            <div className="col-12 col-md-6 col-lg-4">
-              <div className="card border-0 shadow-sm rounded-3 h-100 p-4 card-hover stat-card-danger">
-                <div className="d-flex align-items-center gap-3">
-                  <div className="rounded-3 bg-danger bg-opacity-10 p-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16" className="text-danger">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-                    </svg>
-                  </div>
-                  <div className="flex-grow-1">
-                    <h6 className="text-uppercase text-muted fw-semibold mb-1 small">Total Distractions</h6>
-                    <p className="fs-3 fw-bold mb-0 text-danger">{totalDistractions}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-12 col-md-6 col-lg-4">
-              <div className="card border-0 shadow-sm rounded-3 h-100 p-4 card-hover stat-card-success">
-                <div className="d-flex align-items-center gap-3">
-                  <div className="rounded-3 bg-success bg-opacity-10 p-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16" className="text-success">
-                      <path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 1 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 1-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 1-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 1 1.828-1.828l.645-1.937zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.734 1.734 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.734 1.734 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.734 1.734 0 0 0 3.407 2.31l.387-1.162z" />
-                    </svg>
-                  </div>
-                  <div className="flex-grow-1">
-                    <h6 className="text-uppercase text-muted fw-semibold mb-1 small">Productivity Score</h6>
-                    <p className="fs-3 fw-bold mb-0 text-success">{productivityScore}%</p>
-                  </div>
+            <div className="sb-hero-stat sb-hero-hours">
+              <div className="sb-hero-stat-icon">⏱</div>
+              <div>
+                <div className="sb-hero-stat-val">{productiveHours}h</div>
+                <div className="sb-hero-stat-label">Useful Work Done</div>
+                <div className="sb-hero-stat-sub">
+                  {completedSessions} session{completedSessions !== 1 ? "s" : ""} completed
                 </div>
               </div>
             </div>
           </div>
+
+          <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginBottom: 16, marginTop: 32 }}>
+            Cumulative from all sessions
+          </p>
+
+          <div className="sb-stats-grid">
+            <StatsCard
+              icon={Icons.clock}
+              label="Total Focus Time"
+              value={fmtTimeLong(totalFocusTime)}
+              gradient="linear-gradient(145deg, #fff 0%, #e8ecfe 100%)"
+              accent="#4361ee"
+              delay={0}
+            />
+            <StatsCard
+              icon={Icons.xCircle}
+              label="Total Distractions"
+              value={totalDistractions}
+              subtitle={totalTimeAway > 0 ? `${fmtDurationMs(totalTimeAway)} lost to distractions` : null}
+              gradient="linear-gradient(145deg, #fff 0%, #fce4e9 100%)"
+              accent="#ef476f"
+              delay={80}
+            />
+            <StatsCard
+              icon={Icons.spark}
+              label="Productivity Score"
+              value={`${score}%`}
+              gradient="linear-gradient(145deg, #fff 0%, #d4f5eb 100%)"
+              accent="#059669"
+              delay={160}
+            />
+          </div>
+
+          <div className="sb-stats-grid" style={{ marginTop: 16 }}>
+            <StatsCard
+              icon={Icons.bolt}
+              label="Total Sessions"
+              value={sessions.length}
+              gradient="linear-gradient(145deg, #fff 0%, #fff0d9 100%)"
+              accent="#d97706"
+              delay={240}
+            />
+            <StatsCard
+              icon={Icons.chart}
+              label="Best Session"
+              value={fmtTimeLong(bestSession)}
+              gradient="linear-gradient(145deg, #fff 0%, #ede9fe 100%)"
+              accent="#7c3aed"
+              delay={320}
+            />
+            <StatsCard
+              icon={Icons.spark}
+              label="Productive Time"
+              value={fmtTimeLong(productiveFocusTime)}
+              gradient="linear-gradient(145deg, #fff 0%, #cffafe 100%)"
+              accent="#0891b2"
+              delay={400}
+            />
+          </div>
+
+          {sessions.length > 1 && (
+            <div className="sb-charts-row">
+              <div className="sb-chart-card">
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: "#334155", marginBottom: 12 }}>
+                  Focus Time (Recent Sessions)
+                </h3>
+                <MiniBarChart data={chartData} color="#4361ee" height={90} />
+              </div>
+              <div className="sb-chart-card">
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: "#334155", marginBottom: 12 }}>
+                  Distractions (Recent Sessions)
+                </h3>
+                <MiniBarChart data={distractChart} color="#ef476f" height={90} />
+              </div>
+            </div>
+          )}
+
+          {sessions.length > 0 && (
+            <div className="sb-history-card">
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "#334155", marginBottom: 12 }}>
+                Session History
+              </h3>
+              <div className="sb-history-list">
+                {[...sessions].reverse().slice(0, 10).map((s, i) => {
+                  return (
+                    <div key={s.id || i} className="sb-history-row-v2">
+                      <div className="sb-history-row-main">
+                        <span className="sb-history-num">#{sessions.length - i}</span>
+                        <span style={{ color: "#4361ee", fontWeight: 600 }}>
+                          {fmtTimeLong(s.focusTime)}
+                        </span>
+                        <span style={{ color: "#94a3b8", fontSize: 12 }}>|</span>
+                        <span style={{ color: s.distractions > 0 ? "#ef476f" : "#059669", fontSize: 13 }}>
+                          {s.distractions} distraction{s.distractions !== 1 ? "s" : ""}
+                          {s.timeAway > 0 && (
+                            <span style={{ color: "#94a3b8", fontWeight: 400 }}>
+                              {" "}({fmtDurationMs(s.timeAway)} away)
+                            </span>
+                          )}
+                        </span>
+                        {s.completed === false && (
+                          <span style={{
+                            background: "#fef2f2",
+                            color: "#dc2626",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "2px 8px",
+                            borderRadius: 10,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.5,
+                          }}>
+                            ended early
+                          </span>
+                        )}
+                        {s.proctored && (
+                          <span style={{
+                            background: "#0f172a",
+                            color: "#cbd5e1",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "2px 8px",
+                            borderRadius: 10,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.5,
+                          }}>
+                            🔒 proctored
+                          </span>
+                        )}
+                        {s.pomodoro && (
+                          <span style={{
+                            background: "#fff7ed",
+                            color: "#c2410c",
+                            border: "1px solid #fdba74",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "2px 8px",
+                            borderRadius: 10,
+                            textTransform: "uppercase",
+                            letterSpacing: 0.5,
+                          }}>
+                            🍅 {s.blocksCompleted || 1}× pomodoro
+                          </span>
+                        )}
+                        <span style={{ marginLeft: "auto", color: "#cbd5e1", fontSize: 11 }}>
+                          {new Date(s.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

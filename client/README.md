@@ -1,43 +1,88 @@
-# StandByte — Focus & Productivity
+# StandByte — Focus Timer & Productivity Tracker
 
-A modern web app to track focus time, reduce distractions, and build better work habits. Built with React and Bootstrap.
+A web-based Pomodoro-style focus timer that tracks your productivity, detects distractions (tab switches), and helps you build better work habits.
 
 ## Features
 
-- **Focus sessions** — Set a focus target (in seconds). The timer runs until you hit the target, then triggers a short break.
-- **Tab-switch detection** — Leaving the tab during a focus session counts as a distraction and updates your stats in real time.
-- **Work-related forgiveness** — When you return, you can mark a tab switch as work-related (or pick a site you use for work). Sites like YouTube, Netflix, Spotify, etc. can be set in Settings to “don’t count” so choosing them in the prompt won’t add to your distraction total.
-- **Adaptive focus length** — Fewer distractions reward you with a longer next focus target; many distractions shorten it.
-- **Dashboard** — View total focus time, total distractions, and a productivity score. Stats persist across refreshes (stored in the browser).
-- **Break notifications** — Optional browser notification when it’s time for a break.
-- **Keyboard shortcut** — Press **Space** on the Session page to start or pause the timer (when not in a form field).
-- **404 page** — Unknown routes show a friendly “Page not found” with a link back to the dashboard.
-- **Responsive UI** — Layout and circular progress ring adapt to small screens.
+### Focus Session
+- **Configurable timer** — choose from 15, 25, 30, 45, or 60 minute focus sessions
+- **Circular progress ring** — visual SVG indicator showing time elapsed
+- **Tab-switch detection** — automatically detects when you leave the tab during a session
+- **Forgive prompt** — asks if the tab switch was work-related; forgives based on your site settings
+- **Adaptive focus limits** — timer adjusts based on distraction count (more distractions → shorter next session)
+- **Keyboard shortcut** — press `Space` to start/pause
+- **Browser notifications** — notifies you when it's break time
 
-## How to run
+### Break System
+- **Break modal overlay** — full-screen overlay with countdown when break starts
+- **Configurable break duration** — 3, 5, 10, or 15 minute breaks
+- **Skip option** — skip break and return to focus mode
+- **Auto-reset** — session automatically resets when break ends
+
+### Dashboard
+- **6 stat cards** — Total Focus Time, Total Distractions, Productivity Score, Sessions Completed, Best Session, Average Distractions
+- **Bar charts** — visual charts for focus time and distractions across recent sessions
+- **Session history** — scrollable list of past sessions with timestamps
+- **Empty state** — friendly CTA when no sessions exist yet
+
+### Settings
+- **Timer configuration** — set focus and break durations
+- **Site distraction toggles** — mark sites (YouTube, Netflix, Spotify, etc.) as "don't count" for work use
+- **Danger zone** — clear all data with confirmation dialog
+
+### Persistence
+- All data persists in `localStorage` — analytics, session history, and site settings survive page refreshes
+
+## Project Structure
+
+```
+src/
+├── App.js                    # Root: routing, global state, persistence
+├── index.js                  # Entry point
+├── index.css                 # Complete design system
+├── components/
+│   ├── Navbar.js             # Top navigation with responsive hamburger
+│   ├── Footer.js             # App footer
+│   ├── CircularProgress.js   # Reusable SVG progress ring
+│   ├── StatsCard.js          # Dashboard stat card
+│   ├── MiniBarChart.js       # CSS bar chart for dashboard
+│   ├── BreakModal.js         # Break time overlay modal
+│   └── ForgivePrompt.js      # Tab-switch forgive dialog
+├── pages/
+│   ├── dashboard.js          # Analytics dashboard
+│   ├── Session.js            # Focus timer session
+│   ├── Settings.js           # App settings
+│   └── NotFound.js           # 404 page
+└── lib/
+    ├── analyticsStorage.js   # localStorage for analytics + sessions
+    ├── distractionSites.js   # Site config, constants, site settings storage
+    ├── formatTime.js         # Time formatting helpers
+    ├── Icons.js              # SVG icon components
+    └── useDocumentTitle.js   # Dynamic document title hook
+```
+
+## Getting Started
 
 ```bash
-cd client
 npm install
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Build for production with `npm run build`.
+Opens at [http://localhost:3000](http://localhost:3000).
 
-## Tech stack
+## Tech Stack
 
-- React 19
-- React Router 7
-- Bootstrap 5
-- No extra UI libraries; custom CSS for gradients, progress ring, and polish.
+- **React 19** with hooks
+- **React Router v7** for client-side routing
+- **DM Sans** + **JetBrains Mono** typography
+- **Pure CSS** design system (no Bootstrap dependency)
+- **localStorage** for persistence
+- **SVG** circular progress components
 
-## Project structure
+## Build
 
-- `src/App.js` — Router, global state (timer, analytics, site settings), document title, footer.
-- `src/pages/` — Dashboard, Session, Settings, NotFound.
-- `src/components/` — Navbar, Footer.
-- `src/lib/` — `distractionSites.js` (site list + localStorage), `analyticsStorage.js` (persist focus time & distractions).
-- `src/hooks/` — `useDocumentTitle.js` (optional).
-- `src/index.css` — Design tokens, card/button/ring styles, focus-visible and responsive rules.
+```bash
+npm run build
+```
 
-
+Produces optimized static files in `build/`.
