@@ -1,4 +1,4 @@
-# StandByte — Full-Stack Focus Timer (MongoDB)
+# StandByte — Full-Stack Focus Timer
 
 A Pomodoro-style focus timer with proctored sessions, streak tracking, and productivity analytics. Full-stack React + Node.js + MongoDB application.
 ## Screenshots
